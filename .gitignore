@@ -22,6 +22,7 @@ saved_git_model.bak/
 # Hugging Face cache (optional)
 .cache/
 hf_cache/
+hf_home/
 # virtual environment
 .venv/
 
