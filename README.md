@@ -1,3 +1,14 @@
+---
+title: Image Captioning
+emoji: 🖼️
+colorFrom: indigo
+colorTo: pink
+sdk: streamlit
+python_version: "3.10"
+app_file: app.py
+pinned: false
+---
+
 # Image Captioning (Streamlit)
 
 This repo hosts a Streamlit app (`app.py`) that compares multiple image-captioning models.
