@@ -29,6 +29,12 @@ Do the same for your other local folders (`saved_vit_gpt2`, `saved_git_model`) b
 - `BLIP_MODEL_ID` (default: `prateekchandra/blip-caption-model`)
 - `VITGPT2_MODEL_ID` (default: `prateekchandra/vit-gpt2-caption-model`)
 - `GIT_MODEL_ID` (default: `prateekchandra/git-caption-model`)
+ 
+In this repo, defaults are set to:
+ 
+- `BLIP_MODEL_ID` (default: `pchandragrid/blip-caption-model`)
+- `VITGPT2_MODEL_ID` (default: `pchandragrid/vit-gpt2-caption-model`)
+- `GIT_MODEL_ID` (default: `pchandragrid/git-caption-model`)
 
 You can also override local folder names:
 

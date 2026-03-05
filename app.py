@@ -203,11 +203,6 @@ def load_git():
     return model, processor
 
 
-blip_model, blip_processor = load_blip()
-vit_model, vit_processor, vit_tokenizer = load_vit_gpt2()
-git_model, git_processor = load_git()
-
-
 # ================================
 # HEADER
 # ================================
@@ -270,6 +265,11 @@ These steps allow the system to learn stronger **image-text alignment and captio
 
 st.sidebar.header("⚙️ Generation Settings")
 
+st.sidebar.subheader("Models to run")
+run_blip = st.sidebar.checkbox("BLIP", value=True)
+run_vit = st.sidebar.checkbox("ViT-GPT2", value=False)
+run_git = st.sidebar.checkbox("GIT", value=False)
+
 num_beams = st.sidebar.slider("Beam Size",1,10,5)
 max_length = st.sidebar.slider("Max Length",10,50,20)
 length_penalty = st.sidebar.slider("Length Penalty",0.5,2.0,1.0,step=0.1)
@@ -301,53 +301,52 @@ if uploaded_file:
 
         with st.spinner("Running models..."):
 
-            # BLIP
-            start = time.time()
+            if not any([run_blip, run_vit, run_git]):
+                st.warning("Select at least one model in the sidebar.")
+                st.stop()
 
-            blip_inputs = blip_processor(images=image, return_tensors="pt").to(device)
+            results = []
+            blip_inputs = None
 
-            with torch.no_grad():
-                blip_ids = blip_model.generate(
-                    **blip_inputs,
-                    num_beams=num_beams,
-                    max_length=max_length,
-                    length_penalty=length_penalty
-                )
+            if run_blip:
+                blip_model, blip_processor = load_blip()
+                start = time.time()
+                blip_inputs = blip_processor(images=image, return_tensors="pt").to(device)
+                with torch.no_grad():
+                    blip_ids = blip_model.generate(
+                        **blip_inputs,
+                        num_beams=num_beams,
+                        max_length=max_length,
+                        length_penalty=length_penalty,
+                    )
+                blip_caption = blip_processor.decode(blip_ids[0], skip_special_tokens=True)
+                results.append(("BLIP", blip_caption, time.time() - start))
 
-            blip_caption = blip_processor.decode(blip_ids[0], skip_special_tokens=True)
-            blip_time = time.time() - start
+            if run_vit:
+                vit_model, vit_processor, vit_tokenizer = load_vit_gpt2()
+                start = time.time()
+                pixel_values = vit_processor(images=image, return_tensors="pt").pixel_values.to(device)
+                with torch.no_grad():
+                    vit_ids = vit_model.generate(
+                        pixel_values=pixel_values,
+                        num_beams=num_beams,
+                        max_length=max_length,
+                    )
+                vit_caption = vit_tokenizer.decode(vit_ids[0], skip_special_tokens=True)
+                results.append(("ViT-GPT2", vit_caption, time.time() - start))
 
-
-            # ViT-GPT2
-            start = time.time()
-
-            pixel_values = vit_processor(images=image, return_tensors="pt").pixel_values.to(device)
-
-            with torch.no_grad():
-                vit_ids = vit_model.generate(
-                    pixel_values=pixel_values,
-                    num_beams=num_beams,
-                    max_length=max_length
-                )
-
-            vit_caption = vit_tokenizer.decode(vit_ids[0], skip_special_tokens=True)
-            vit_time = time.time() - start
-
-
-            # GIT
-            start = time.time()
-
-            git_inputs = git_processor(images=image, return_tensors="pt").to(device)
-
-            with torch.no_grad():
-                git_ids = git_model.generate(
-                    **git_inputs,
-                    num_beams=num_beams,
-                    max_length=max_length
-                )
-
-            git_caption = git_processor.batch_decode(git_ids, skip_special_tokens=True)[0]
-            git_time = time.time() - start
+            if run_git:
+                git_model, git_processor = load_git()
+                start = time.time()
+                git_inputs = git_processor(images=image, return_tensors="pt").to(device)
+                with torch.no_grad():
+                    git_ids = git_model.generate(
+                        **git_inputs,
+                        num_beams=num_beams,
+                        max_length=max_length,
+                    )
+                git_caption = git_processor.batch_decode(git_ids, skip_special_tokens=True)[0]
+                results.append(("GIT", git_caption, time.time() - start))
 
 
         st.divider()
@@ -364,22 +363,12 @@ This comparison highlights differences in:
 • architectural design
 """)
 
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            st.markdown('<div class="model-title">BLIP</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="caption-box">{blip_caption}</div>', unsafe_allow_html=True)
-            st.caption(f"Inference: {blip_time:.2f}s")
-
-        with col2:
-            st.markdown('<div class="model-title">ViT-GPT2</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="caption-box">{vit_caption}</div>', unsafe_allow_html=True)
-            st.caption(f"Inference: {vit_time:.2f}s")
-
-        with col3:
-            st.markdown('<div class="model-title">GIT</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="caption-box">{git_caption}</div>', unsafe_allow_html=True)
-            st.caption(f"Inference: {git_time:.2f}s")
+        cols = st.columns(len(results))
+        for col, (name, caption, seconds) in zip(cols, results):
+            with col:
+                st.markdown(f'<div class="model-title">{name}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="caption-box">{caption}</div>', unsafe_allow_html=True)
+                st.caption(f"Inference: {seconds:.2f}s")
 
 
         st.divider()
@@ -389,33 +378,34 @@ This comparison highlights differences in:
         # ATTENTION HEATMAP
         # ================================
 
-        with torch.no_grad():
+        if run_blip and blip_inputs is not None:
+            blip_model, _ = load_blip()
+            with torch.no_grad():
+                vision_outputs = blip_model.vision_model(
+                    blip_inputs["pixel_values"],
+                    output_attentions=True,
+                    return_dict=True,
+                )
 
-            vision_outputs = blip_model.vision_model(
-                blip_inputs["pixel_values"],
-                output_attentions=True,
-                return_dict=True
-            )
+            attentions = vision_outputs.attentions[-1]
 
-        attentions = vision_outputs.attentions[-1]
+            attn = attentions[0].mean(0)
+            cls_attn = attn[0, 1:]
 
-        attn = attentions[0].mean(0)
-        cls_attn = attn[0,1:]
+            attn_map = cls_attn.cpu().numpy()
+            attn_map = attn_map / attn_map.max()
 
-        attn_map = cls_attn.cpu().numpy()
-        attn_map = attn_map / attn_map.max()
+            size = int(np.sqrt(len(attn_map)))
 
-        size = int(np.sqrt(len(attn_map)))
+            fig, ax = plt.subplots(figsize=(6, 6))
 
-        fig, ax = plt.subplots(figsize=(6,6))
+            ax.imshow(attn_map.reshape(size, size), cmap="viridis")
+            ax.set_title("BLIP Vision Attention")
+            ax.axis("off")
 
-        ax.imshow(attn_map.reshape(size,size), cmap="viridis")
-        ax.set_title("BLIP Vision Attention")
-        ax.axis("off")
+            st.pyplot(fig, use_container_width=True)
 
-        st.pyplot(fig, use_container_width=True)
-
-        st.markdown("""
+            st.markdown("""
 ### 🔍 Attention Visualization
 
 The attention heatmap highlights **which regions of the image the model focused on while generating the caption**.
