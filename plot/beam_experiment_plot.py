@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 # Beam sizes tested
 beam_sizes = [1, 3, 5, 10]
@@ -22,6 +23,7 @@ plt.legend()
 
 plt.grid(True)
 
-plt.savefig("beam_search_experiment.png", dpi=300)
+out_path = Path(__file__).resolve().parent / "beam_search_experiment.png"
+plt.savefig(out_path, dpi=300, bbox_inches="tight")
 
-plt.show()
+plt.close()

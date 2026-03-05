@@ -1,6 +1,7 @@
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
 ANNOTATION_FILE = "annotations/captions_validation.jsonl"
 
@@ -8,25 +9,27 @@ short = []
 medium = []
 long = []
 
-with open(ANNOTATION_FILE) as f:
-    for line in f:
-        data = json.loads(line)
+try:
+    with open(ANNOTATION_FILE) as f:
+        for line in f:
+            data = json.loads(line)
 
-        caption = data["captions"][0]
-        length = len(caption.split())
+            caption = data["captions"][0]
+            length = len(caption.split())
 
-        if length <= 8:
-            short.append(length)
+            if length <= 8:
+                short.append(length)
+            elif length <= 15:
+                medium.append(length)
+            else:
+                long.append(length)
 
-        elif length <= 15:
-            medium.append(length)
-
-        else:
-            long.append(length)
-
-print("Short captions:", len(short))
-print("Medium captions:", len(medium))
-print("Long captions:", len(long))
+    print("Short captions:", len(short))
+    print("Medium captions:", len(medium))
+    print("Long captions:", len(long))
+except FileNotFoundError:
+    # The plot can still be generated without the dataset file.
+    print(f"Note: '{ANNOTATION_FILE}' not found; skipping caption-length counts.")
 
 
 # Example scores from your training logs
@@ -53,6 +56,7 @@ plt.xticks(x, labels)
 
 plt.legend()
 
-plt.savefig("caption_length_analysis.png", dpi=300)
+out_path = Path(__file__).resolve().parent / "caption_length_analysis.png"
+plt.savefig(out_path, dpi=300, bbox_inches="tight")
 
-plt.show()
+plt.close()
