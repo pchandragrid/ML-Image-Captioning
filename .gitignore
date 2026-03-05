@@ -48,3 +48,10 @@ checkpoints_20k_384/
 
 # mac files
 .DS_Store
+
+# Hugging Face Spaces: avoid binaries in git
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
