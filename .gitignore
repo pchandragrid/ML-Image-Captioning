@@ -1,0 +1,49 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+
+# Local datasets
+train2017/
+val2017/
+annotations/*.jsonl
+
+# Local model artifacts (don't commit)
+saved_model_phase1/
+saved_model_phase2/
+saved_vit_gpt2/
+saved_git_model/
+saved_model_phase2.bak/
+saved_vit_gpt2.bak/
+saved_git_model.bak/
+
+# Hugging Face cache (optional)
+.cache/
+hf_cache/
+# virtual environment
+.venv/
+
+# python cache
+__pycache__/
+*.pyc
+
+# datasets
+train2017/
+val2017/
+annotations/
+
+# trained models
+saved_model/
+
+saved_model_20k_384/
+
+
+
+# checkpoints
+checkpoints/
+checkpoints_20k_384/
+
+# mac files
+.DS_Store
