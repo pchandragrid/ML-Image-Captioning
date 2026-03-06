@@ -215,48 +215,6 @@ unsafe_allow_html=True
 )
 
 
-st.markdown("""
-### 📌 Project Overview
-
-This project focuses on **automatic image caption generation using transformer-based vision-language models**.
-
-The system takes an input image and generates a natural language description of the scene.
-
-Three architectures are evaluated:
-
-• **BLIP (Bootstrapping Language Image Pretraining)** – multimodal transformer designed specifically for vision-language tasks  
-• **ViT-GPT2** – Vision Transformer encoder combined with GPT2 text decoder  
-• **GIT (Generative Image-to-Text Transformer)** – unified transformer architecture for image-to-text generation  
-
-The goal of this project is to **compare model architectures, caption quality, and generation performance** using the COCO dataset.
-
----
-
-### 🎯 Project Objective
-
-Improve caption generation performance through **fine-tuning and decoding optimization**.
-
-Training pipeline:
-
-**Step 1 — Dataset Preparation**
-- Use **MS COCO captions dataset**
-- Train on a **10k–50k image-caption subset**
-
-**Step 2 — Model Fine-Tuning**
-- Fine-tune **BLIP or VisionEncoderDecoder models**
-
-**Step 3 — Training Configuration**
-- Train with image resolution **224–384 px**
-- Train for **3 epochs**
-
-**Step 4 — Memory Optimization**
-- Use **gradient checkpointing** to reduce GPU memory usage
-
-**Step 5 — Target Performance**
-- Achieve **10%+ improvement in CIDEr score** compared to baseline models
-
-These steps allow the system to learn stronger **image-text alignment and caption generation capability**.
-""")
 
 
 # ================================
@@ -419,51 +377,50 @@ Brighter regions indicate higher importance for the caption generation process.
 # ================================
 
 st.divider()
-st.header("📊 Model Architecture Comparison")
 
-data = {
-"Model":["BLIP","ViT-GPT2","GIT"],
-"Architecture":[
-"Vision Transformer + Text Decoder",
-"ViT Encoder + GPT2 Decoder",
-"Unified Transformer"
-],
-"Parameters":["~224M","~210M","~150M"],
-"Training Time":["~1h 34m / epoch","~1h 20m / epoch","~11 min / epoch"],
-"CIDEr Score":["0.61","0.60","0.17"]
-}
+tab1, tab2 = st.tabs(["📊 Model Architecture Comparison", "📊 Experiment Analysis"])
 
-df = pd.DataFrame(data)
+with tab1:
+    st.header("Model Architecture Comparison")
+    
+    data = {
+    "Model":["BLIP","ViT-GPT2","GIT"],
+    "Architecture":[
+    "Vision Transformer + Text Decoder",
+    "ViT Encoder + GPT2 Decoder",
+    "Unified Transformer"
+    ],
+    "Parameters":["~224M","~210M","~150M"],
+    "Training Time":["~1h 34m / epoch","~1h 20m / epoch","~11 min / epoch"],
+    "CIDEr Score":["0.61","0.60","0.17"]
+    }
+    
+    df = pd.DataFrame(data)
+    
+    st.table(df)
 
-st.table(df)
-
-
-# ================================
-# EXPERIMENT GRAPHS
-# ================================
-
-st.divider()
-st.header("📊 Experiment Analysis")
-
-st.subheader("Beam Size vs Caption Quality")
-
-fig1 = plot_beam_experiment()
-st.pyplot(fig1, use_container_width=True)
-
-st.markdown("""
-Beam search controls how many candidate captions are explored during generation.
-Increasing beam size improves caption quality initially but eventually leads to diminishing returns.
-""")
-
-
-st.divider()
-
-st.subheader("Caption Length vs Model Performance")
-
-fig2 = plot_caption_length()
-st.pyplot(fig2, use_container_width=True)
-
-st.markdown("""
-Caption length impacts performance because longer captions require more detailed reasoning about the scene.
-Models generally perform better on shorter captions.
-""")
+with tab2:
+    st.header("Experiment Analysis")
+    
+    st.subheader("Beam Size vs Caption Quality")
+    
+    fig1 = plot_beam_experiment()
+    st.pyplot(fig1, use_container_width=True)
+    
+    st.markdown("""
+    Beam search controls how many candidate captions are explored during generation.
+    Increasing beam size improves caption quality initially but eventually leads to diminishing returns.
+    """)
+    
+    
+    st.divider()
+    
+    st.subheader("Caption Length vs Model Performance")
+    
+    fig2 = plot_caption_length()
+    st.pyplot(fig2, use_container_width=True)
+    
+    st.markdown("""
+    Caption length impacts performance because longer captions require more detailed reasoning about the scene.
+    Models generally perform better on shorter captions.
+    """)
