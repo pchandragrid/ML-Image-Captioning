@@ -6,15 +6,8 @@ pillow
 numpy
 matplotlib
 pandas
-torch
 torchvision
-transformers
 datasets
-Pillow
-numpy
 tqdm
 pycocoevalcap
-streamlit
-matplotlib
-pandas
 scikit-learn
